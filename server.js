@@ -32,7 +32,9 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/tasks",authMiddleware, async (req, res) => {
   try {
-    const tasks = await Task.find();
+    const tasks = await Task.find({
+      userId: req.user.userId,
+    });
 
     res.status(200).json(tasks);
   } catch (error) {
@@ -48,6 +50,7 @@ app.post("/api/tasks",authMiddleware, async (req, res) => {
 
     const newTask = await Task.create({
       text,
+      userId: req.user.userId,
     });
 
     res.status(201).json(newTask);
@@ -67,7 +70,10 @@ app.delete("/api/tasks/:id",authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Invalid task id" });
     }
 
-    const deletedTask = await Task.findByIdAndDelete(id);
+    const deletedTask = await Task.findOneAndDelete({
+      _id: id,
+      userId: req.user.userId,
+    });
 
     if (!deletedTask) {
       return res.status(404).json({ message: "Task not found" });
